@@ -7,7 +7,7 @@ export default function Hello() {
   useEffect(() => {
     async function getMessage() {
       try {
-        const url = "https://fastapi-lake.vercel.app/?vercelToolbarCode=cr0gMap313B0EFp";
+        const url = "https://fastapi-lake.vercel.app";
         const res = await axios.get(url);
         setMessage(res.data.message);
       } catch (err) {
