@@ -23,6 +23,7 @@ export default function Hello() {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
+      location.reload();
     } catch (err) {
       console.error("ログアウトエラー:", err);
     }
