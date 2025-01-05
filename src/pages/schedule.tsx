@@ -41,7 +41,7 @@ const fetchEvents = async () => {
   if (!userData || loading) return;
 
   try {
-    const response = await fetch(`http://localhost:8000/users/${userData.id}/events`);
+    const response = await fetch(`NEXT_PUBLIC_API_URL/users/${userData.id}/events`);
     if (!response.ok) {
       // ステータスコードによる詳細なエラー処理
       if (response.status === 404) {
@@ -92,8 +92,8 @@ const fetchEvents = async () => {
 
     const method = currentEvent ? "PUT" : "POST";
     const url = currentEvent
-      ? `http://localhost:8000/users/${userData?.id}/events/${currentEvent.id}`
-      : `http://localhost:8000/users/${userData?.id}/events`;
+      ? `NEXT_PUBLIC_API_URL/users/${userData?.id}/events/${currentEvent.id}`
+      : `NEXT_PUBLIC_API_URL/users/${userData?.id}/events`;
 
     const event = {
       title,
@@ -148,7 +148,7 @@ const fetchEvents = async () => {
 
     try {
       const response = await fetch(
-        `http://localhost:8000/users/${userData?.id}/events/${id}`,
+        `NEXT_PUBLIC_API_URL/users/${userData?.id}/events/${id}`,
         {
           method: "DELETE",
         }

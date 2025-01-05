@@ -19,14 +19,14 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const googleId = session.user.id;
 
           // Google IDからユーザー情報を取得
-          const idResponse = await fetch("http://localhost:8000/auth/google-id", {
+          const idResponse = await fetch("NEXT_PUBLIC_API_URLauth/google-id", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ google_id: googleId }),
           });
           const { id } = await idResponse.json();
 
-          const userResponse = await fetch(`http://localhost:8000/users/${id}`);
+          const userResponse = await fetch(`NEXT_PUBLIC_API_URL/users/${id}`);
           const user = await userResponse.json();
 
           setUserData(user);
