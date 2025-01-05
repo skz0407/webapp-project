@@ -1,10 +1,39 @@
 import { useUser } from "@/contexts/UserContext"; // Contextからユーザーデータを取得
+import { useEffect, useState } from "react";
 import { Box, Heading, VStack, Text, Button, HStack, Spinner } from "@chakra-ui/react";
+import { useRouter } from "next/router";
+import { Event } from "@/types/Event";
 
 export default function Home() {
   const { userData, loading } = useUser(); // Contextからデータを取得
+  const [events, setEvents] = useState<Event[]>([]); // 今後のスケジュール
+  const [loadingEvents, setLoadingEvents] = useState(true); // スケジュール読み込み状態
+  const router = useRouter(); // useRouterフックを利用
 
-  if (loading) {
+  // スケジュールを取得
+  const fetchEvents = async () => {
+    if (!userData) return;
+
+    try {
+      const response = await fetch(`http://localhost:8000/users/${userData.id}/events`);
+      if (!response.ok) throw new Error("スケジュールの取得に失敗しました");
+      const data: Event[] = await response.json();
+
+      // 今日以降のスケジュールをフィルタリング
+      const upcomingEvents = data.filter((event) => new Date(event.start_time) > new Date());
+      setEvents(upcomingEvents);
+    } catch (error) {
+      console.error("スケジュール取得エラー:", error);
+    } finally {
+      setLoadingEvents(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchEvents();
+  }, [userData]);
+
+  if (loading || loadingEvents) {
     return (
       <Box textAlign="center" mt={8}>
         <Spinner size="xl" />
@@ -31,14 +60,26 @@ export default function Home() {
         </Text>
       </Box>
 
-      {/* 未完了タスク */}
+      {/* スケジュール */}
       <Box w="100%" p={4} bg="gray.50" borderRadius="md" shadow="md">
-        <Heading size="md">今日のタスク</Heading>
+        <Heading size="md">スケジュール</Heading>
         <VStack align="start" mt={2}>
-          <Text>・プロジェクト会議 (10:00 AM)</Text>
-          <Text>・レポート提出 (5:00 PM)</Text>
-          <Button size="sm" colorScheme="teal" mt={2}>
-            タスク一覧を見る
+          {events.length > 0 ? (
+            events.map((event) => (
+              <Text key={event.id}>
+                ・{new Date(event.start_time).toLocaleString()} - {event.title}
+              </Text>
+            ))
+          ) : (
+            <Text>今後のスケジュールはありません。</Text>
+          )}
+          <Button
+            size="sm"
+            colorScheme="teal"
+            mt={2}
+            onClick={() => router.push("/schedule")} // スケジュールページに移動
+          >
+            スケジュールを見る
           </Button>
         </VStack>
       </Box>
@@ -54,17 +95,6 @@ export default function Home() {
           </Button>
         </VStack>
       </Box>
-
-      {/* クイックアクション */}
-      <HStack spacing={4} w="100%">
-        <Button colorScheme="teal" w="100%">
-          新しいタスクを作成
-        </Button>
-        <Button colorScheme="teal" w="100%">
-          新しいスレッドを作成
-        </Button>
-      </HStack>
     </VStack>
   );
 }
-
