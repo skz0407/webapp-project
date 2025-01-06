@@ -5,6 +5,7 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import { useEffect, useState } from "react";
 import { useUser } from "@/contexts/UserContext";
+import { useApiUrl } from "@/contexts/ApiContext";
 import { Event } from "@/types/Event";
 import {
   Box,
@@ -35,13 +36,14 @@ export default function Schedule() {
     end_time: "",
   });
   const toast = useToast();
+  const apiUrl = useApiUrl();
 
 // イベントをAPIから取得
 const fetchEvents = async () => {
   if (!userData || loading) return;
 
   try {
-    const response = await fetch(`NEXT_PUBLIC_API_URL/users/${userData.id}/events`);
+    const response = await fetch(`${apiUrl}/users/${userData.id}/events`);
     if (!response.ok) {
       // ステータスコードによる詳細なエラー処理
       if (response.status === 404) {
@@ -92,8 +94,8 @@ const fetchEvents = async () => {
 
     const method = currentEvent ? "PUT" : "POST";
     const url = currentEvent
-      ? `NEXT_PUBLIC_API_URL/users/${userData?.id}/events/${currentEvent.id}`
-      : `NEXT_PUBLIC_API_URL/users/${userData?.id}/events`;
+      ? `${apiUrl}/users/${userData?.id}/events/${currentEvent.id}`
+      : `${apiUrl}/users/${userData?.id}/events`;
 
     const event = {
       title,
@@ -148,7 +150,7 @@ const fetchEvents = async () => {
 
     try {
       const response = await fetch(
-        `NEXT_PUBLIC_API_URL/users/${userData?.id}/events/${id}`,
+        `${apiUrl}/users/${userData?.id}/events/${id}`,
         {
           method: "DELETE",
         }

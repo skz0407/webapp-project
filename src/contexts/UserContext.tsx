@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import supabase from "@/libs/supabase";
 import { User } from "@/types/User";
 import { UserContextType } from "@/types/UserContextType";
+import { useApiUrl } from "./ApiContext";
 
 // Contextを初期化
 const UserContext = createContext<UserContextType | null>(null);
@@ -10,6 +11,7 @@ const UserContext = createContext<UserContextType | null>(null);
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [userData, setUserData] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const apiUrl = useApiUrl();
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -19,14 +21,14 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const googleId = session.user.id;
 
           // Google IDからユーザー情報を取得
-          const idResponse = await fetch("NEXT_PUBLIC_API_URLauth/google-id", {
+          const idResponse = await fetch(`${apiUrl}/auth/google-id`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ google_id: googleId }),
           });
           const { id } = await idResponse.json();
 
-          const userResponse = await fetch(`NEXT_PUBLIC_API_URL/users/${id}`);
+          const userResponse = await fetch(`${apiUrl}/users/${id}`);
           const user = await userResponse.json();
 
           setUserData(user);

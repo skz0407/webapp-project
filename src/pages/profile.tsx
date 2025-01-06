@@ -12,6 +12,7 @@ import {
 } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
 import { useUser } from "@/contexts/UserContext";
+import { useApiUrl } from "@/contexts/ApiContext";
 
 interface UserData {
   id: string;
@@ -29,6 +30,7 @@ export default function Profile() {
     avatar_url: "",
   });
   const [saving, setSaving] = useState(false); // 保存中状態
+  const apiUrl = useApiUrl();
 
   useEffect(() => {
     if (userData) {
@@ -56,7 +58,7 @@ export default function Profile() {
   const updateUserData = async () => {
     setSaving(true);
     try {
-      const response = await fetch(`http://localhost:8000/users/${userData.id}`, {
+      const response = await fetch(`${apiUrl}/users/${userData.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(editingUserData),

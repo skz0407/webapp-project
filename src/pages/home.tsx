@@ -3,19 +3,21 @@ import { useEffect, useState } from "react";
 import { Box, Heading, VStack, Text, Button, HStack, Spinner } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import { Event } from "@/types/Event";
+import { useApiUrl } from "@/contexts/ApiContext";
 
 export default function Home() {
   const { userData, loading } = useUser(); // Contextからデータを取得
   const [events, setEvents] = useState<Event[]>([]); // 今後のスケジュール
   const [loadingEvents, setLoadingEvents] = useState(true); // スケジュール読み込み状態
   const router = useRouter(); // useRouterフックを利用
+  const apiUrl = useApiUrl();
 
   // スケジュールを取得
   const fetchEvents = async () => {
     if (!userData) return;
 
     try {
-      const response = await fetch(`http://localhost:8000/users/${userData.id}/events`);
+      const response = await fetch(`${apiUrl}/users/${userData.id}/events`);
       if (!response.ok) throw new Error("スケジュールの取得に失敗しました");
       const data: Event[] = await response.json();
 

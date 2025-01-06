@@ -3,12 +3,14 @@ import { Button, VStack, Heading, Text } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
 import supabase from "@/libs/supabase";
 import { Session } from "@supabase/supabase-js";
+import { useApiUrl } from "@/contexts/ApiContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export default function Auth() {
   const [sessionInfo, setSessionInfo] = useState<Session | null>(null);
   const [loading, setLoading] = useState(false);
+  const apiUrl = useApiUrl();
 
   // Googleログイン
   const GoogleSignIn = async () => {
@@ -52,7 +54,7 @@ export default function Auth() {
         // FastAPIにデータを送信
         const user = session.user;
         try {
-          const response = await fetch("NEXT_PUBLIC_API_URL/auth/google", {
+          const response = await fetch(`${apiUrl}/auth/google`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({

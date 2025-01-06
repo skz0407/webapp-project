@@ -3,7 +3,7 @@ import { usePathname } from "next/navigation";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { useRecoilState } from "recoil";
-
+import { useApiUrl } from "@/contexts/ApiContext";
 import { sessionState } from "@/libs/states";
 import supabase from "@/libs/supabase";
 
@@ -17,6 +17,7 @@ export const SessionProvider = ({ children }: SessionProviderProps) => {
   const [isReady, setIsReady] = useState(false);
   const [isDataSent, setIsDataSent] = useState(false); // データ送信状態を追跡
   const [, setSession] = useRecoilState<Session | null>(sessionState);
+  const apiUrl = useApiUrl();
 
   useEffect(() => {
     const sessionUpdate = async () => {
@@ -37,7 +38,7 @@ export const SessionProvider = ({ children }: SessionProviderProps) => {
         if (!isDataSent) {
           try {
             const user = session.user;
-            const response = await fetch("NEXT_PUBLIC_API_URL/auth/google", {
+            const response = await fetch(`${apiUrl}/auth/google`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
