@@ -259,6 +259,7 @@ const fetchEvents = async () => {
           <Input
             placeholder="イベント名を入力"
             value={newEvent.title}
+            maxLength={255}
             onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
           />
         </FormControl>

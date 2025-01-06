@@ -52,13 +52,13 @@ export default function Sidebar(){
       {/* 上部ナビゲーション */}
       <Box>
         <Text fontSize="2xl" fontWeight="bold" mb={8}>
-          MyApp
+          Plan&Talk
         </Text>
         <Flex direction="column" as="ul" gap={4}>
           <SidebarLink href="/home" icon={FaHome} label="Home" />
           <SidebarLink href="/schedule" icon={FaCalendarAlt} label="Schedule" />
           <SidebarLink href="/profile" icon={FaUser} label="Profile" />
-          <SidebarLink href="/board" icon={FaClipboardList} label="Board" />
+          <SidebarLink href="/threads" icon={FaClipboardList} label="Treads" />
         </Flex>
       </Box>
 

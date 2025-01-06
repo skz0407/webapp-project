@@ -13,13 +13,7 @@ import {
 import { useState, useEffect } from "react";
 import { useUser } from "@/contexts/UserContext";
 import { useApiUrl } from "@/contexts/ApiContext";
-
-interface UserData {
-  id: string;
-  username: string;
-  email: string;
-  avatar_url: string;
-}
+import { UserData } from "@/types/UserData";
 
 export default function Profile() {
   const { userData, setUserData, loading } = useUser(); // Contextからデータを取得
