@@ -86,10 +86,10 @@ export default function Threads() {
       setError("タイトルと内容を入力してください。");
       return;
     }
-
+  
     setError(null);
     try {
-      const response = await fetch(`${apiUrl}/threads`, {
+      await fetch(`${apiUrl}/threads`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -97,24 +97,12 @@ export default function Threads() {
           user_id: userData?.id,
         }),
       });
-      if (!response.ok) throw new Error("スレッド作成に失敗しました");
-      const data = await response.json();
-      setThreads((prevThreads) =>
-        [data, ...prevThreads].sort(
-          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        )
-      );
-      setUserThreads((prevThreads) =>
-        [data, ...prevThreads].sort(
-          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        )
-      );
       setNewThread({ title: "", content: "" });
       setShowForm(false);
     } catch (error) {
       console.error("スレッド作成エラー:", error);
     }
-  };
+  };  
 
   // Supabase リアルタイム機能の設定
   useEffect(() => {
@@ -125,31 +113,32 @@ export default function Threads() {
         { event: "INSERT", schema: "public", table: "threads" },
         async (payload) => {
           const newThread = payload.new as Thread;
-
+  
           // ユーザー名を取得して補完
           const username = await fetchUsername(newThread.user_id);
           const completeThread = { ...newThread, username };
-
-          // 重複をチェック
+  
+          // 重複チェックを行い、リストを更新
           setThreads((prevThreads) => {
             const isDuplicate = prevThreads.some(
-              (thread) => thread.id === newThread.id
+              (thread) => thread.id === completeThread.id
             );
             if (isDuplicate) return prevThreads;
-
+  
             return [completeThread, ...prevThreads].sort(
               (a, b) =>
                 new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
             );
           });
-
+  
+          // ユーザー参加中のスレッドを更新
           if (newThread.user_id === userData?.id) {
             setUserThreads((prevThreads) => {
               const isDuplicate = prevThreads.some(
-                (thread) => thread.id === newThread.id
+                (thread) => thread.id === completeThread.id
               );
               if (isDuplicate) return prevThreads;
-
+  
               return [completeThread, ...prevThreads].sort(
                 (a, b) =>
                   new Date(b.created_at).getTime() -
@@ -160,11 +149,12 @@ export default function Threads() {
         }
       )
       .subscribe();
-
+  
     return () => {
       supabase.removeChannel(subscription);
     };
   }, [userData]);
+  
 
   // 初回データ取得
   useEffect(() => {
