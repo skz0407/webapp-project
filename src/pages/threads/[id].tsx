@@ -48,11 +48,11 @@ export default function ThreadDetail() {
 
   // コメントを投稿
   const postComment = async () => {
-    if (!newComment.trim()) return; // 空コメントの投稿を防止
-
+    if (!newComment.trim()) return;
+  
     setPosting(true);
     try {
-      const response = await fetch(`${apiUrl}/threads/${id}/comments`, {
+      await fetch(`${apiUrl}/threads/${id}/comments`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -61,13 +61,6 @@ export default function ThreadDetail() {
           user_id: userData?.id,
         }),
       });
-      if (!response.ok) throw new Error("コメントの投稿に失敗しました");
-      const data = await response.json();
-      setComments((prevComments) =>
-        [...prevComments, data].sort(
-          (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-        )
-      );
       setNewComment(""); // フォームをリセット
     } catch (error) {
       console.error("コメント投稿エラー:", error);
