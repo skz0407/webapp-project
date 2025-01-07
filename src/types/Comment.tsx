@@ -3,7 +3,7 @@ interface Comment {
     content: string;
     username: string;
     created_at: string;
-    user_id: string;
+    user_id?: string;
   }
 
   export type { Comment }
