@@ -18,6 +18,7 @@ import { useState, useEffect } from "react";
 import { useApiUrl } from "@/contexts/ApiContext";
 import { useUser } from "@/contexts/UserContext";
 import Link from "next/link";
+import supabase from "@/libs/supabase";
 import { Thread } from "@/types/Thread";
 
 export default function Threads() {
@@ -30,13 +31,18 @@ export default function Threads() {
   const [newThread, setNewThread] = useState({ title: "", content: "" });
   const [error, setError] = useState<string | null>(null);
 
+  // スレッド一覧を取得
   const fetchThreads = async () => {
-    setLoading(true);
     try {
       const response = await fetch(`${apiUrl}/threads`);
       if (!response.ok) throw new Error("スレッド一覧の取得に失敗しました");
       const data = await response.json();
-      setThreads(data);
+      setThreads(
+        data.sort(
+          (a: Thread, b: Thread) =>
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        )
+      );
     } catch (error) {
       console.error("スレッド取得エラー:", error);
     } finally {
@@ -44,17 +50,24 @@ export default function Threads() {
     }
   };
 
+  // 参加中のスレッドを取得
   const fetchUserThreads = async () => {
     try {
       const response = await fetch(`${apiUrl}/users/${userData?.id}/threads`);
       if (!response.ok) throw new Error("参加中のスレッドの取得に失敗しました");
       const data = await response.json();
-      setUserThreads(data);
+      setUserThreads(
+        data.sort(
+          (a: Thread, b: Thread) =>
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        )
+      );
     } catch (error) {
       console.error("参加中スレッド取得エラー:", error);
     }
   };
 
+  // スレッドを作成
   const createThread = async () => {
     if (!newThread.title.trim() || !newThread.content.trim()) {
       setError("タイトルと内容を入力してください。");
@@ -73,7 +86,16 @@ export default function Threads() {
       });
       if (!response.ok) throw new Error("スレッド作成に失敗しました");
       const data = await response.json();
-      setThreads((prevThreads) => [data, ...prevThreads]);
+      setThreads((prevThreads) =>
+        [data, ...prevThreads].sort(
+          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        )
+      );
+      setUserThreads((prevThreads) =>
+        [data, ...prevThreads].sort(
+          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        )
+      );
       setNewThread({ title: "", content: "" });
       setShowForm(false);
     } catch (error) {
@@ -81,6 +103,53 @@ export default function Threads() {
     }
   };
 
+  // Supabase リアルタイム機能の設定
+  useEffect(() => {
+    const subscription = supabase
+      .channel("realtime-threads")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "threads" },
+        (payload) => {
+          const newThread = payload.new as Thread;
+  
+          // 重複をチェック
+          setThreads((prevThreads) => {
+            const isDuplicate = prevThreads.some(
+              (thread) => thread.id === newThread.id
+            );
+            if (isDuplicate) return prevThreads;
+  
+            return [newThread, ...prevThreads].sort(
+              (a, b) =>
+                new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+            );
+          });
+  
+          if (newThread.user_id === userData?.id) {
+            setUserThreads((prevThreads) => {
+              const isDuplicate = prevThreads.some(
+                (thread) => thread.id === newThread.id
+              );
+              if (isDuplicate) return prevThreads;
+  
+              return [newThread, ...prevThreads].sort(
+                (a, b) =>
+                  new Date(b.created_at).getTime() -
+                  new Date(a.created_at).getTime()
+              );
+            });
+          }
+        }
+      )
+      .subscribe();
+  
+    return () => {
+      supabase.removeChannel(subscription);
+    };
+  }, [userData]);  
+
+  // 初回データ取得
   useEffect(() => {
     fetchThreads();
     if (userData) fetchUserThreads();
@@ -157,12 +226,9 @@ export default function Threads() {
         ))}
       </VStack>
       <Divider my={6} />
-      <HStack spacing={4}>
+      <HStack spacing={4} mt={4}>
         <Button colorScheme="teal" onClick={() => setShowForm(true)} width="50%">
           新しいスレッドを作成
-        </Button>
-        <Button colorScheme="blue" onClick={fetchThreads} width="50%">
-          リロード
         </Button>
       </HStack>
       {showForm && (
@@ -201,3 +267,4 @@ export default function Threads() {
     </Box>
   );
 }
+
