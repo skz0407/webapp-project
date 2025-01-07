@@ -31,6 +31,19 @@ export default function Threads() {
   const [newThread, setNewThread] = useState({ title: "", content: "" });
   const [error, setError] = useState<string | null>(null);
 
+  // ユーザー名を取得する関数
+  const fetchUsername = async (userId: string) => {
+    try {
+      const response = await fetch(`${apiUrl}/users/${userId}`);
+      if (!response.ok) throw new Error("ユーザー名の取得に失敗しました");
+      const data = await response.json();
+      return data.username;
+    } catch (error) {
+      console.error("ユーザー名取得エラー:", error);
+      return "Unknown"; // 取得失敗時のデフォルト値
+    }
+  };
+
   // スレッド一覧を取得
   const fetchThreads = async () => {
     try {
@@ -110,30 +123,34 @@ export default function Threads() {
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "threads" },
-        (payload) => {
+        async (payload) => {
           const newThread = payload.new as Thread;
-  
+
+          // ユーザー名を取得して補完
+          const username = await fetchUsername(newThread.user_id);
+          const completeThread = { ...newThread, username };
+
           // 重複をチェック
           setThreads((prevThreads) => {
             const isDuplicate = prevThreads.some(
               (thread) => thread.id === newThread.id
             );
             if (isDuplicate) return prevThreads;
-  
-            return [newThread, ...prevThreads].sort(
+
+            return [completeThread, ...prevThreads].sort(
               (a, b) =>
                 new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
             );
           });
-  
+
           if (newThread.user_id === userData?.id) {
             setUserThreads((prevThreads) => {
               const isDuplicate = prevThreads.some(
                 (thread) => thread.id === newThread.id
               );
               if (isDuplicate) return prevThreads;
-  
-              return [newThread, ...prevThreads].sort(
+
+              return [completeThread, ...prevThreads].sort(
                 (a, b) =>
                   new Date(b.created_at).getTime() -
                   new Date(a.created_at).getTime()
@@ -143,11 +160,11 @@ export default function Threads() {
         }
       )
       .subscribe();
-  
+
     return () => {
       supabase.removeChannel(subscription);
     };
-  }, [userData]);  
+  }, [userData]);
 
   // 初回データ取得
   useEffect(() => {

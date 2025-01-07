@@ -108,8 +108,19 @@ export default function ThreadDetail() {
               username: userData?.username || "Unknown",
             };
   
-            // コメントリストを更新
-            setComments((prevComments) => [...prevComments, completeComment]);
+            // 重複チェックを行い、リストに存在しない場合のみ追加
+            setComments((prevComments) => {
+              const isDuplicate = prevComments.some(
+                (comment) => comment.id === completeComment.id
+              );
+              if (isDuplicate) {
+                return prevComments; // 重複している場合は何もしない
+              }
+              return [...prevComments, completeComment].sort(
+                (a, b) =>
+                  new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+              );
+            });
           }
         )
         .subscribe();
@@ -119,7 +130,6 @@ export default function ThreadDetail() {
       };
     }
   }, [id]);
-  
   
 
   if (loading) {
