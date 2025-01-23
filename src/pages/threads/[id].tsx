@@ -149,7 +149,7 @@ export default function ThreadDetail() {
         <Heading size="md" mb={2}>
           {thread.title}
         </Heading>
-        <Text mb={4}>{thread.content}</Text>
+        <Text mb={4} whiteSpace="pre-line">{thread.content}</Text>
         <Flex justify="space-between" fontSize="sm" color="gray.500">
           <Text>作成者: {thread.username}</Text>
           <Text>投稿日: {new Date(thread.created_at).toLocaleString()}</Text>
@@ -164,7 +164,7 @@ export default function ThreadDetail() {
         {comments.length > 0 ? (
           comments.map((comment) => (
             <Box key={comment.id} p={4} borderWidth="1px" borderRadius="md" width="100%">
-              <Text>{comment.content}</Text>
+              <Text whiteSpace="pre-line">{comment.content}</Text>
               <Flex justify="space-between" fontSize="sm" color="gray.500">
                 <Text>投稿者: {comment.username}</Text>
                 <Text>
